@@ -22,68 +22,80 @@ x = 0:0.01:200;
 plot(1:n, bessel_roots, 'o-k', 'linewidth', 1.5)
 xlabel('Root number $k$', 'interpreter', 'latex')
 ylabel('Number of iterations')
-set(gca, 'fontsize', 16, 'fontname', 'TimesNewRoman')
-set(gcf,
-    'PaperUnits', 'inches',
-    'PaperSize', [pos(3), pos(4)])
+set(gca, 'fontsize', 12, 'fontname', 'TimesNewRoman')
+set(gcf,'PaperUnits', 'inches','PaperSize', [3, 4])
 
 print(gcf, '02_01_n_Pe_comp.pdf', '-dpdf')
 
 %% Quadrature rule
-% n = 8;
-% result = zeros(1, n);
-% for k = 1:n
-%     [z, w] = zwgll(2^k); 
-%     z = 0.5 * (z + 1); w = 0.5 * w; % Scale to [0, 1]
-%     result(k) = sum(w .* besselj(0, bessel_roots(45) .* z).^2);
-%     if k > 1
-%         disp(abs(result(k) - result(k - 1)));
-%     end
-    
-% end
-% plot(2.^(1:n), result); pause
+n = 8;
+result = zeros(1, n);
+for k = 1:n
+    [z, w] = zwgll(2^k); 
+    z = 0.5 * (z + 1); w = 0.5 * w; % Scale to [0, 1]
+    result(k) = sum(w .* besselj(0, bessel_roots(45) .* z).^2);
+    if k > 1
+        disp(abs(result(k) - result(k - 1)));
+    end
+end
+plot(2.^(1:n), result);
+title('$k=45$','Interpreter',"latex")
+xlabel('Number of Quadrature Points $(n)$', 'interpreter', 'latex')
+ylabel('Value of Integral $(\int_0^{\infty} |J_{\nu}(x)|^2 \, x \, dx)$', 'interpreter', 'latex')
+set(gca, 'fontsize', 12)
+set(gcf,'PaperUnits', 'inches','PaperSize', [3, 4])
 
 %% Plot result at z = 0
-% ng = 100;   % Number of grid points spanning R
-% N = 50;     % Maximum N
-% r = linspace(0, 1, ng);
-% [z, w] = zwgll(256); 
-% z = 0.5 * (z + 1); w = 0.5 * w; % Scale to [0, 1]
-% T = zeros(N, ng);
-% dT = zeros(N, ng);
+ng = 100;   % Number of grid points spanning R
+N = 50;     % Maximum N
+r = linspace(0, 1, ng);
+[z, w] = zwgll(256); 
+z = 0.5 * (z + 1); w = 0.5 * w; % Scale to [0, 1]
+T = zeros(N, ng);
+dT = zeros(N, ng);
 
-% figure(2); hold on;
-% figure(3); hold on;
-% for k = 1:N;
-%     j0 = besselj(0, bessel_roots(k) .*z);
-%     sh_by_ch = tanh(bessel_roots(k) * 20);
-%     beta_k = sum(w.*j0.*z) / sum(w.*j0.^2.*z);
-%     if k > 1;
-%         T(k, :) = T(k-1, :) + beta_k / bessel_roots(k) * besselj(0, bessel_roots(k)*r) * sh_by_ch;
-%         dT(k, :) = T(k-1, :) - beta_k * besselj(0, bessel_roots(k)*r);
-%     else;
-%         T(k, :) = beta_k / bessel_roots(k) * besselj(0, bessel_roots(k)*r) * sh_by_ch;
-%         dT(k, :) = -beta_k * besselj(0, bessel_roots(k)*r);
-%     end;
-%     % figure(2); plot(r, T(k, :), 'linewidth', 1.5, 'DisplayName', strcat('N = ', num2str(k)))
-%     % figure(3); plot(r, dT(k, :), 'linewidth', 1.5, 'DisplayName', strcat('N = ', num2str(k)))    
-% end;
-% % figure(2); plot(r, T(end, :), 'linewidth', 1.5, 'DisplayName', strcat('N = ', num2str(k)))
-% % figure(3); plot(r, dT(end, :), 'linewidth', 1.5, 'DisplayName', strcat('N = ', num2str(k)))  
-% % figure(2); legend();
-% % figure(3); legend();
-% save("temperature.mat", "T")
+figure(2); hold on;
+figure(3); hold on;
+for k = 1:N
+    j0 = besselj(0, bessel_roots(k) .*z);
+    sh_by_ch = tanh(bessel_roots(k) * 20);
+    beta_k = sum(w.*j0.*z) / sum(w.*j0.^2.*z);
+    if k > 1
+        T(k, :) = T(k-1, :) + beta_k / bessel_roots(k) * besselj(0, bessel_roots(k)*r) * sh_by_ch;
+        dT(k, :) = T(k-1, :) - beta_k * besselj(0, bessel_roots(k)*r);
+    else
+        T(k, :) = beta_k / bessel_roots(k) * besselj(0, bessel_roots(k)*r) * sh_by_ch;
+        dT(k, :) = -beta_k * besselj(0, bessel_roots(k)*r);
+    end
+    if k < 10
+        figure(2); plot(r, T(k, :), 'linewidth', 1.5, 'DisplayName', strcat('N = ', num2str(k)))
+        figure(3); plot(r, dT(k, :), 'linewidth', 1.5, 'DisplayName', strcat('N = ', num2str(k)))    
+    end
+end
+%figure(2); plot(r, T(end, :), 'linewidth', 1.5, 'DisplayName', strcat('N = ', num2str(k)))
+%figure(3); plot(r, dT(end, :), 'linewidth', 1.5, 'DisplayName', strcat('N = ', num2str(k)))  
+figure(2); legend('location',"northeastoutside"); xlabel('Position (r)', 'Interpreter',"latex"); ylabel('Temperature (T)', 'Interpreter',"latex")
+set(gca, 'fontsize', 12)
+set(gcf,'PaperUnits', 'inches','PaperSize', [3, 4])
+figure(3); legend('location',"northeastoutside"); xlabel('Position (r)', 'Interpreter',"latex"); ylabel('$\frac{dT}{dz}$', 'Interpreter',"latex",'Rotation', 90)
+set(gca, 'fontsize', 12)
+set(gcf,'PaperUnits', 'inches','PaperSize', [3, 4])
+save("temperature.mat", "T")
+
 
 %% Convergence
-% load("temperature.mat")
-% M = max(T, [], 2)';
-% err = abs(M(1:end - 1) - M(end));
-% figure(4)
-% hold on
-% loglog(1:49, err)
-% loglog(1:49, (1:49).^(-1.5) / 10)   % ~1.5 order convergence
-% hold off
-% pause
+load("temperature.mat")
+M = max(T, [], 2)';
+err = abs(M(1:end - 1) - M(end));
+figure(4)
+hold on
+loglog(1:49, err)
+loglog(1:49, (1:49).^(-1.5) / 10)   % ~1.5 order convergence
+%xlabel('N'); ylabel('|M_N - M_{50}|')
+xlabel('Number of modes (N)', 'Interpreter',"latex"); ylabel('$|M_N - M_{50}|$', 'Interpreter',"latex")
+set(gca, 'fontsize', 12)
+hold off
+
 
 % L dependence
 ng = 100;   % Number of grid points spanning R
@@ -96,16 +108,17 @@ r = linspace(0, 1, ng);
 z = 0.5 * (z + 1); w = 0.5 * w; % Scale to [0, 1]
 T = zeros(ln, ng);
 
-for l = 1:ln;
-    for k = 1:N;
+for l = 1:ln
+    for k = 1:N
         j0 = besselj(0, bessel_roots(k) .*z);
         sh_by_ch = tanh(bessel_roots(k) * L(l));
         beta_k = sum(w.*j0.*z) / sum(w.*j0.^2.*z);
         T(l, :) = T(l, :) + beta_k / bessel_roots(k) * besselj(0, bessel_roots(k)*r) * sh_by_ch;
-    end;
-end;
+    end
+end
 M50 = max(T, [], 2);
 figure(5);
 plot(L, M50)
-pause
-    
+xlabel('Length (L)',"Interpreter","latex")
+ylabel('$M_{50}$',"Interpreter","latex")
+set(gca, 'fontsize', 12)
