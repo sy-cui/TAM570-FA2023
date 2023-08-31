@@ -38,7 +38,7 @@ for k = 1:n
         disp(abs(result(k) - result(k - 1)));
     end
 end
-plot(2.^(1:n), result);
+plot(2.^(1:n), result,'linewidth', 1.5);
 title('$k=45$','Interpreter',"latex")
 xlabel('Number of Quadrature Points $(n)$', 'interpreter', 'latex')
 ylabel('Value of Integral $(\int_0^{\infty} |J_{\nu}(x)|^2 \, x \, dx)$', 'interpreter', 'latex')
@@ -77,7 +77,7 @@ end
 figure(2); legend('location',"northeastoutside"); xlabel('Position (r)', 'Interpreter',"latex"); ylabel('Temperature (T)', 'Interpreter',"latex")
 set(gca, 'fontsize', 12)
 set(gcf,'PaperUnits', 'inches','PaperSize', [3, 4])
-figure(3); legend('location',"northeastoutside"); xlabel('Position (r)', 'Interpreter',"latex"); ylabel('$\frac{dT}{dz}$', 'Interpreter',"latex",'Rotation', 90)
+figure(3); legend('location',"northeastoutside"); xlabel('Position (r)', 'Interpreter',"latex"); ylabel('$\partial_z T$', 'Interpreter',"latex",'Rotation', 90)
 set(gca, 'fontsize', 12)
 set(gcf,'PaperUnits', 'inches','PaperSize', [3, 4])
 save("temperature.mat", "T")
@@ -89,8 +89,9 @@ M = max(T, [], 2)';
 err = abs(M(1:end - 1) - M(end));
 figure(4)
 hold on
-loglog(1:49, err)
-loglog(1:49, (1:49).^(-1.5) / 10)   % ~1.5 order convergence
+loglog(1:49, err,'linewidth', 1.5, 'DisplayName','Actual Error')
+loglog(1:49, (1:49).^(-1.5) / 10,'linewidth', 1.5, 'DisplayName',"Order 1.5")   % ~1.5 order convergence
+legend()
 %xlabel('N'); ylabel('|M_N - M_{50}|')
 xlabel('Number of modes (N)', 'Interpreter',"latex"); ylabel('$|M_N - M_{50}|$', 'Interpreter',"latex")
 set(gca, 'fontsize', 12)
@@ -118,7 +119,7 @@ for l = 1:ln
 end
 M50 = max(T, [], 2);
 figure(5);
-plot(L, M50)
+plot(L, M50,'linewidth', 1.5)
 xlabel('Length (L)',"Interpreter","latex")
 ylabel('$M_{50}$',"Interpreter","latex")
 set(gca, 'fontsize', 12)
