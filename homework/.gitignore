@@ -1,0 +1,7 @@
+*.pdf 
+*.mat 
+*.png
+*.jpg
+*.svg
+*.eps
+.DS_Store
