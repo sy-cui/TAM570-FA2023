@@ -1,9 +1,15 @@
 %% 
 function F_inter = compute_F_inv(N, M)
+    if mod(N, 2) == 0
+        temp1 = linspace(-N/2, N/2-1, N);
+        temp2 = linspace(-M/2, M/2-1, M); 
+    else
+        temp1 = linspace(-(N-1)/2, (N-1)/2, N);
+        temp2 = linspace(-M/2, M/2-1, M); 
+    end
     k = -(N/2):1:(N/2-1);
-    temp = linspace(0, N-1, N);
     h = (2*pi)/N;
-    xj = -pi + h*(temp);
+    xj = h*(temp1);
 
     kx = k' * xj;
     i = sqrt(-1);
@@ -13,8 +19,7 @@ function F_inter = compute_F_inv(N, M)
     %uj = functions(xj);
     %uk = F * (uj');
     hl = (2*pi)/M;
-    temp = linspace(0, M-1, M);
-    yl = -pi + hl*(temp);
+    yl = hl*(temp2);
 
     kyl = yl' * k;
 
