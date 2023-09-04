@@ -76,5 +76,6 @@ for j=1:length(N)
         %set(gca, 'Position', [pos(1) pos(2) pos(3) pos(4)-0.01]);
     end
     % Add an overall title
-    sgtitle(['N = ', num2str(N(j))], 'Interpreter', 'latex');
+    % sgtitle(['N = ', num2str(N(j))], 'Interpreter', 'latex');
 end
+pause
