@@ -24,10 +24,12 @@ function [F, S, x, y, k] = compute_projection_matrices(N, M, l, r);
         error("Wrong number of arguments");
     end;
 
+    scale_factor = 2 * pi / (r - l);
+
     x = l + (r - l) / N * [0:N-1];
     y = l + (r - l) / M * [0:M-1];
 
-    k = [-N/2:(N/2-1)];
+    k = [-N/2:(N/2-1)] * scale_factor;
     if mod(N, 2) ~= 0;
         k = [-(N-1)/2:(N-1)/2];
     end;
