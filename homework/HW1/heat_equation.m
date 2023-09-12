@@ -19,13 +19,14 @@ end
 
 figure(1)
 x = 0:0.01:200;
-plot(1:n, bessel_roots, 'o-k', 'linewidth', 1.5)
+plot(1:n, iters, 'o-k', 'linewidth', 1.5)
 xlabel('Root number $k$', 'interpreter', 'latex')
 ylabel('Number of iterations')
 set(gca, 'fontsize', 12, 'fontname', 'TimesNewRoman')
 set(gcf,'PaperUnits', 'inches','PaperSize', [3, 4])
+pause
 
-% 2. Quadrature rule
+%% 2. Quadrature rule
 n = 8;
 k_test = 50;
 result = zeros(1, n);
@@ -56,7 +57,7 @@ set(gcf,'PaperUnits', 'inches','PaperSize', [pos(3) pos(4)])
 
 % print(gcf, '03_02_quad_convergence.pdf', '-dpdf')
 
-% 3. Plot result at z = 0
+%% 3. Plot result at z = 0
 ng = 128;   % Number of grid points spanning R
 N = 50;     % Maximum N
 r = linspace(0, 1, ng);
@@ -112,7 +113,7 @@ hold off
 % print(gcf, '03_04_dT_profile.pdf', '-dpdf')
 % save("temperature.mat", "T")
 
-% 4. Convergence of maximum temperature
+%% 4. Convergence of maximum temperature
 N = 50;
 L = 20;
 r = linspace(0, 1, 128); z = linspace(0, L, 128)';
