@@ -1,3 +1,4 @@
+addpath('/Users/sycui/Desktop/course_work/Fall_2023/TAM570/lib')
 premeable;
 %% 1. Interpolation
 funcs = {@(x) exp(x), @(x) sign(x), @(x) 1 ./ (1 + 25 .* x.^2)};

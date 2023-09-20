@@ -28,8 +28,6 @@ else
     M(i,i+1)=(1/2)*sqrt((i*(i+2))/((i+1/2)*(i+3/2)));
     M(i+1,i)=M(i,i+1);
   end;
-
-  [V,D]=eig(M);
   z(2:p)=sort(eig(M));
 end;
 end;
