@@ -23,7 +23,12 @@ By = Ry * Bh_y * Ry';
 [Sx, Lamx] = gen_eig_decomp(Ax, Bx);
 [Sy, Lamy] = gen_eig_decomp(Ay, By);
 
-eval_inv = 1 ./ (full(diag(Lamx)) + full(diag(Lamy))');
+lx = full(diag(Lamx)); ly = full(diag(Lamy));
+
+eval_inv = 1 ./ (
+    reshape(lx, [length(lx), 1]) 
+    + reshape(ly, [1, length(ly)]) 
+);
 
 rhs = rhs_func(x_grid, y_grid);
 rhs = tensor2(Bh_y, Bh_x, rhs);
