@@ -1,4 +1,4 @@
-function [x_grid, y_grid, z_grid, ub] = poisson3d(nx, ny, nz, bc, rhs_func);
+function [x_grid, y_grid, z_grid, ub, ts] = poisson3d(nx, ny, nz, bc, rhs_func);
 
 [Ah_x, Bh_x, Ch_x, Dh_x, z_x, w_x] = semhat(nx);
 [Ah_y, Bh_y, Ch_y, Dh_y, z_y, w_y] = semhat(ny);
@@ -37,13 +37,15 @@ eval_inv = 1 ./ (
     + reshape(lz, [1, 1, length(lz)]) 
 );
 
-rhs = rhs_func(x_grid, y_grid, z_grid);
+rhs = rhs_func(x_grid, y_grid, z_grid); 
 rhs = tensor3(Bh_z, Bh_y, Bh_x, rhs);
 rhs = tensor3(Rz, Ry, Rx, rhs);
 
+tic(); 
 u = tensor3(Sz', Sy', Sx', rhs);
 u = eval_inv .* u;
 u = tensor3(Sz, Sy, Sx, u);
+ts = toc();
 
 % Prolongate u
 ub = tensor3(Rz', Ry', Rx', u);
