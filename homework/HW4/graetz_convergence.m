@@ -65,7 +65,7 @@ figure(1, 'Units', 'inches', 'Position', [2 2 10 5]);
     linf_error = max(abs(solns_y(1:end-1, :) - solns_y(end, :)), [], 2);
     semilogy(ny_arr(1:end-1), linf_error, '-ok', lw, 1.5);
     xlabel('$N_y$', intp, ltx); ylabel('$L_\infty$ error', intp, ltx);
-    set(gca, lw, 1, fs, 12)
+    set(gca, lw, 1, fs, 12, fn, 'serif')
 
     subplot(1, 2, 2); box on;
     linf_error = max(abs(solns_x(1:end-1, :) - solns_x(end, :)), [], 2);
@@ -74,6 +74,6 @@ figure(1, 'Units', 'inches', 'Position', [2 2 10 5]);
     loglog(nx_arr(1:end-1), nx_arr(1:end-1).^(-2), '--r', lw, 1.5)
     hold off;
     xlabel('$N_x$', intp, ltx); ylabel('$L_\infty$ error', intp, ltx);
-    set(gca, lw, 1, fs, 12)
+    set(gca, lw, 1, fs, 12, fn, 'serif')
 
-    savefig_pdf('graetz_convergece')
+    savefig_pdf('graetz_convergence')

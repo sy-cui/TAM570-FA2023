@@ -30,7 +30,7 @@ figure(1, 'Units', 'inches', 'Position', [2 2 4 4]); box on;
     ylabel('$y$', intp, ltx); 
     zlabel('$T(x, y)$', intp, ltx);
     view(40, 15);
-    set(gca, lw, 1, fs, 12)
+    set(gca, lw, 1, fs, 12, fn, 'serif')
     savefig_pdf('graetz_mesh')
 
 figure(2, 'Units', 'inches', 'Position', [2 2 8 4]); box on;
@@ -43,6 +43,6 @@ figure(2, 'Units', 'inches', 'Position', [2 2 8 4]); box on;
         xlim([0 xm]); ylim([-1 1]); zlim([0 1.25]);
         xlabel('$x$', intp, ltx); ylabel('$y$', intp, ltx); zlabel('$T(x, y)$', intp, ltx);
         view(40, 15);
-        set(gca, lw, 1, fs, 12)
+        set(gca, lw, 1, fs, 12, fn, 'serif')
     end;
     savefig_pdf('graetz_decay')
