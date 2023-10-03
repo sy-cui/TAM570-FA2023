@@ -1,6 +1,6 @@
 function [x, y, soln, lam_min, coeff, evec] = graetz(nx, ny, xm, ux_func, alpha, method);
 
-if lower(method) ~= 'bdf2' && lower(method) ~= 'cn';
+if ~strcmp(lower(method), 'bdf2') && ~strcmp(lower(method), 'cn');
     error('Unrecognized method.')
 end;
 
@@ -23,7 +23,7 @@ lam_min = full(Lam(1, 1));
 coeff = ones(1, ny-1) * B * S(:, 1);
 evec = [0; S(:, 1); 0];
 
-if lower(method) == 'bdf2';         % BDF2
+if strcmp(lower(method), 'bdf2');   % BDF2
     A_bdf1 = dx*A + full(B);        % Neumann op for first step (BDF1)
     A_bdf2 = 2*dx*A + 3*full(B);    % Neumann op for BDF2
 
