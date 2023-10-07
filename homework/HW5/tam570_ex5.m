@@ -1,12 +1,15 @@
-nx = 100;
+addpath('/Users/sycui/Desktop/course_work/Fall_2023/TAM570/lib');
+nx = 40;
 ny = nx;
-T = 2 * pi;
-nt = 100;
-dt = T/nt;
+T = 2*pi;
 
 [Ahx,Bhx,Chx,Dhx,zx,wx] = semhat(nx);
 [Ahy,Bhy,Chy,Dhy,zy,wy] = semhat(ny);
 [R,S] = ndgrid(zx,zy);
+
+dt = 0.5*(zx(2)-zx(1))/sqrt(2);
+nt = ceil(T/dt);
+dt = T/nt;
 
 u0 = ones(nx+1,ny+1);          % initial condition
 x0 = 0.5; y0 = 0.0;
@@ -35,6 +38,7 @@ velx = Rx * velx * Rx'; vely = Ry * vely * Ry';
 u_arr = zeros((nx+1),(ny+1),nt+2);
 u_arr(:,:,1) = u0;
 u_arr(:,:,2) = u0;
+u_arr(:,:,3) = u0;
 
 [Sx, Lamx] = gen_eig_decomp(Cx,Bx);
 [Sy, Lamy] = gen_eig_decomp(Cy,By);
@@ -52,19 +56,28 @@ Lam = 1 ./ (p1 + p2);
 bk = [1.5 -2 0.5];
 ak = [2 -1];
 
-for i=3:(nt+2)
+bk = [11 -18 9 -2] / 6;
+ak = [3 -3 1];
+
+for i=4:(nt+2)
     f1 = tensor2(Ry, Rx, u_arr(:,:,i-1));
     f2 = tensor2(Ry, Rx, u_arr(:,:,i-2));
-    ext = (ak(1) .* f1 + ak(2) .* f2);
+    f3 = tensor2(Ry, Rx, u_arr(:,:,i-3));
+    ext = (ak(1) .* f1 + ak(2) .* f2 + ak(3) .* f3);
     Vx = velx .* tensor2(By, Cx, ext);
     Vy = vely .* tensor2(Cy, Bx, ext);
-    rhs = - bk(2) .* f1 - bk(3) .* f2 ...
-            + tensor2(Biy, Bix, dt .* (Vx + Vy));
-    uh = bk(1) .* tensor2(Iy, Ix, rhs);
+    rhs = - bk(2) .* f1 - bk(3) .* f2 - bk(4) .* f3 - tensor2(Biy, Bix, dt .* (Vx + Vy));
+    uh = rhs / bk(1);
     u_arr(:,:,i) = tensor2(Ry', Rx', uh);
+
+    if mod(i,100) == 0;
+        figure(1)
+        surf(R, S, u_arr(:,:,i));
+        pause(0.01)
+    end;
 
     %hl = ( I + 0.5 .* dt .* alpha .*L);
     %hr = ( I - 0.5 .* dt .* alpha .*L);
     %u_arr(:,i) = R'*(inv(hl) * (hr) * (R * u_arr(:,i-1)));
 end
-surf(R, S, u_arr(:,:,end));
+% surf(R, S, u_arr(:,:,10));
