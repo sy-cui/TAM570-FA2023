@@ -51,19 +51,19 @@ cx = fcx(x, y); cy = fcy(x, y);
 % Compute time step
 hx_min = min(z_x(2)-z_x(1), z_y(2)-z_y(1));
 c_max = max(max(sqrt(cx.^2+cy.^2)));
-
 diffusion = (nu > tol);     % Diffusion flag
 advection = (c_max > tol);  % Advection flag
+
 if ~diffusion && ~advection; 
     error('No diffusion or advection present');
 end;
 
-if advection;
-    ht = CFL * hx_min / c_max;
-elseif ht < tol;
+if ht < tol && ~advection;
     error('Advection velocity and ht cannot both be zero');
-else;   % Use provided
-    warning('Advection speed is zero. CFL unused');
+elseif ht < tol; % Use CFL
+    ht = CFL * hx_min / c_max;
+else; % Use min between provided ht and CFL 
+    ht = min(CFL * hx_min / c_max, ht); 
 end;
 n_steps = ceil(Tend / ht);
 ht = Tend / n_steps;
@@ -148,7 +148,7 @@ bc_n(:, end) = Bh_x*bc_n_val(4)*ones(nx+1,1);
 % Time stepping loop
 tic();
 for k = 1:n_steps;
-    fprintf('Progress: %5.2f%% \r', k / n_steps * 100);
+    % fprintf('Progress: %5.2f%% \r', k / n_steps * 100);
     kc = mod(k, 4) + 1;
     km1 = mod(k - 1, 4) + 1;
     km2 = mod(k - 2, 4) + 1;
