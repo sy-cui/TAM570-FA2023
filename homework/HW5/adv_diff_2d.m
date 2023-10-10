@@ -1,17 +1,18 @@
 function [x, y, soln, et] = adv_diff_2d(
-    nv,                 % [Nx Ny]: number of grid points
-    nu,                 % Diffusivity
-    fcx,                % cx(x, y): x-advection speed function
-    fcy,                % cy(x, y): y-advection speed function
-    f0,                 % u^0(x, y): Initial condition evaluation function 
-    fsrc,               % f(t, x, y): Source term function 
-    Tend,               % Total march time
-    CFL,                % Courant-Friedrich-Lewy number
-    ht=0,               % Time step size. This is only used if advection speed is zero. 
-    bct='dddd',         % 'lrbt': Boundary condtions. Defaults to all Dirichlet
-    bcv=[0 0 0 0],      % [l r b t]: Boundary values. Defaults to all homogeneous
-    bp=[-1 1 -1 1],     % [l r b t]: Boundary locations. Defaults to \hat{\Omega}
-    tol=1e-14           % General tolerance. Defaults to 1e-14
+    nv,                     % [Nx Ny]: number of grid points
+    nu,                     % Diffusivity
+    fcx,                    % cx(x, y): x-advection speed function
+    fcy,                    % cy(x, y): y-advection speed function
+    f0,                     % u^0(x, y): Initial condition evaluation function 
+    fsrc,                   % f(t, x, y): Source term function 
+    Tend,                   % Total march time
+    CFL,                    % Courant-Friedrich-Lewy number
+    ht=0,                   % Time step size. This is only used if advection speed is zero. 
+    bct='dddd',             % 'lrbt': Boundary condtions. Defaults to all Dirichlet
+    bcv=[0 0 0 0],          % [l r b t]: Boundary values. Defaults to all homogeneous
+    bp=[-1 1 -1 1],         % [l r b t]: Boundary locations. Defaults to \hat{\Omega}
+    fa={false, @(t,x,y) 0}, % Analytical solution.
+    tol=1e-14               % General tolerance. Defaults to 1e-14
     );
 
 %% ==================== Input argument check ====================
@@ -22,6 +23,7 @@ validateattributes(CFL, {'numeric'}, {'scalar', 'nonnegative'});
 validateattributes(ht, {'numeric'}, {'scalar', 'nonnegative'});
 validateattributes(bcv, {'numeric'}, {'vector', 'numel', 4});
 validateattributes(bp, {'numeric'}, {'vector', 'numel', 4});
+validateattributes(tol, {'numeric'}, {'scalar', 'positive'});
 
 if ~ischar(bct);
     error("Input argument 'bct' must be of string type"); 
@@ -47,6 +49,8 @@ Jac_y = 0.5 * (bp(4) - bp(3));  % Jacobian in y
 x = Jac_x * (xh + 1) + bp(1); 
 y = Jac_y * (yh + 1) + bp(3); 
 cx = fcx(x, y); cy = fcy(x, y);
+
+use_analytical_soln = fa{1};
 
 % Compute time step
 hx_min = min(z_x(2)-z_x(1), z_y(2)-z_y(1));
@@ -213,15 +217,20 @@ for k = 1:n_steps;
         );
     end;
 
-    % Update A_bc_d
     if k == 1;
         A_bc_d = sparse(bdf2(1)*tensor2(Bh_y,Bh_x,bc_d)+nu*ht*(
             tensor2(Bh_y,Ah_x,bc_d)+tensor2(Ah_y,Bh_x,bc_d)
         ));
+        if use_analytical_soln;
+            soln_buff(kc,:,:) = fa{2}(k*ht,x,y);
+        end;
     elseif k == 2;
         A_bc_d = sparse(bdf3(1)*tensor2(Bh_y,Bh_x,bc_d)+nu*ht*(
             tensor2(Bh_y,Ah_x,bc_d)+tensor2(Ah_y,Bh_x,bc_d)
         ));
+        if use_analytical_soln;
+            soln_buff(kc,:,:) = fa{2}(k*ht,x,y);
+        end;
     end;
 
     % if k==0 || k==n_steps|| mod(k, ceil(n_steps /20)) == 0;
