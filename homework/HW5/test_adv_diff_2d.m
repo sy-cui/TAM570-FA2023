@@ -1,80 +1,35 @@
-%% Setup
 addpath('/Users/sycui/Desktop/course_work/Fall_2023/TAM570/lib');
 premeable;
 
-run_spatial_convergence = false;
-run_temporal_convergence = false;
-
-x0 = 0.0; y0 = 0;
-nx = 40;
-ny = 40;
+x0 = 0.5; y0 = 0;
+nx = 80;
+ny = 80;
 nu = 0.01;
-% fcx = @(x,y) -cos(0.5*pi*x).*sin(0.5*pi*y);
-% fcy = @(x,y) sin(0.5*pi*x).*cos(0.5*pi*y);
-% f0 = @(x,y) exp(-((x-x0).^2+(y-y0).^2)/0.016);
-fcx = @(x,y) 0*x;
-fcy = @(x,y) 0*x;
-mode = 1.5;
-f0 = @(x,y) cos(mode*pi*x).*cos(mode*pi*y);
-
-% Analytical solution
-tau = 0.5 / nu / (mode * pi)^2;
-fsoln = @(t,x,y) exp(-t/tau)*f0(x,y);
-
+fcx = @(x,y) -cos(0.5*pi*x).*sin(0.5*pi*y);
+fcy = @(x,y) sin(0.5*pi*x).*cos(0.5*pi*y);
+f0 = @(x,y) exp(-((x-x0).^2+(y-y0).^2)/0.016);
 fsrc = @(t,x,y) 0;
-Tend = log(2) * tau;
+Tend = 1;
 CFL = 0.5;
+ht = Tend / 2048;
 bct = 'dddd';
 bcv = [0 0 0 0];
 bp = [-1 1 -1 1];
-fa = {true, fsoln};
 
-if run_spatial_convergence;
-    % Spatial convergence
-    ns = [4:2:32 36:4:48];
-    espc = ns * 0;
-    for i=1:length(ns);
-        N = ns(i);
-        fprintf("Running N = %d \n", N);
-        [x,y,s,et]=adv_diff_2d([N,N],nu,fcx,fcy,f0,fsrc,Tend,CFL,Tend/8192,bct,bcv,bp,fa);
-        soln = fsoln(Tend,x,y);
-        espc(i) = max(max(soln - s));
-    end;
-    save('diffusion_spatial_convergence.mat', 'ns', 'espc')
-end;
+[x,y,s,et]=adv_diff_2d([nx,ny],nu,fcx,fcy,f0,fsrc,Tend,CFL,ht,bct);
 
-if run_temporal_convergence;
-    % Temporal convergence
-    tsteps = 2.^(2:13);
-    etpr = tsteps * 0;
-    for i=1:length(tsteps);
-        ht = Tend / tsteps(i);
-        fprintf("Running tsteps = %d \n", tsteps(i));
-        [x,y,s,et]=adv_diff_2d([128,128],nu,fcx,fcy,f0,fsrc,Tend,CFL,ht,bct,bcv,bp,fa);
-        soln = fsoln(Tend,x,y);
-        etpr(i) = max(max(soln - s));
-    end;
-    save('diffusion_temporal_convergence.mat', 'tsteps', 'etpr')
-end;
+xi = zwgll(nx); yi = zwgll(ny);
+xo = linspace(-1,1,64); yo = linspace(-1,1,64);
+Jx = interp_mat(xo,xi); Jy = interp_mat(yo,yi);
 
-load('diffusion_spatial_convergence.mat')
-load('diffusion_temporal_convergence.mat')
-figure(1, 'Units', 'inches', 'Position', [2 2 9 4]);
-    subplot(1, 2, 1); box on;
-    semilogy(ns, espc, '-ok', lw, 1.5);
-    xlabel('$N$', intp, ltx); ylabel('$L_\infty$ error', intp, ltx);
-    set(gca, lw, 1, fs, 12, fn, 'serif')
+[xx,yy] = ndgrid(xo, yo);
+s_intp = tensor2(Jy, Jx, s);
 
-    subplot(1, 2, 2); box on;
-    hold on;
-    loglog(Tend./tsteps, etpr, '-ok', lw, 1.5);
-    loglog(Tend./tsteps(1:end-1), 5e-2*(Tend./tsteps)(1:end-1).^3, '--r', lw, 1.5)
-    hold off;
-    xlabel('$\Delta t$', intp, ltx); ylabel('$L_\infty$ error', intp, ltx);
-    set(gca, lw, 1, fs, 12, fn, 'serif')
-    savefig_pdf('02_02_convergence')
-
-
-
-
-
+figure(1, 'Units', 'inches', 'Position', [2 2 4 4]); box on;
+    mesh(x,y,s,lw,1)
+    view(-37.5, 20);
+    zlim([0 0.4]);
+    pbaspect([1 1 1]);
+    xlabel('$x$',intp,ltx); ylabel('$y$',intp,ltx); zlabel('$u(x,y)$',intp,ltx);
+    set(gca, lw, 1, fn, 'serif', fs, 12)
+    savefig_pdf('02_01_adv_diff_mesh')
