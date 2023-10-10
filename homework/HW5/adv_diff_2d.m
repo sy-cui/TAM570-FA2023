@@ -51,9 +51,13 @@ y = Jac_y * (yh + 1) + bp(3);
 cx = fcx(x, y); cy = fcy(x, y);
 
 use_analytical_soln = fa{1};
+fsoln = fa{2};
 
 % Compute time step
-hx_min = min(z_x(2)-z_x(1), z_y(2)-z_y(1));
+hx_min = min(z_x(2) - z_x(1));
+hy_min = min(z_y(2) - z_y(1));
+cx_max = max(max(abs(cx)));
+cy_max = max(max(abs(cy)));
 c_max = max(max(sqrt(cx.^2+cy.^2)));
 diffusion = (nu > tol);     % Diffusion flag
 advection = (c_max > tol);  % Advection flag
@@ -65,9 +69,9 @@ end;
 if ht < tol && ~advection;
     error('Advection velocity and ht cannot both be zero');
 elseif ht < tol; % Use CFL
-    ht = CFL * hx_min / c_max;
+    ht = CFL * min(hx_min / cx_max, hy_min / cy_max);
 else; % Use min between provided ht and CFL 
-    ht = min(CFL * hx_min / c_max, ht); 
+    ht = min(CFL * min(hx_min / cx_max, hy_min / cy_max), ht); 
 end;
 n_steps = ceil(Tend / ht);
 ht = Tend / n_steps;
@@ -136,7 +140,7 @@ bc_d(1, :) = bc_d_val(1)*ones(1,ny+1);
 bc_d(end, :) = bc_d_val(2)*ones(1,ny+1); 
 bc_d(:, 1) = bc_d_val(3)*ones(nx+1,1); 
 bc_d(:, end) = bc_d_val(4)*ones(nx+1,1); 
-A_bc_d = sparse(bdf1(1)*tensor2(Bh_y,Bh_x,bc_d)+nu*ht*(
+H_d = sparse(bdf1(1)*tensor2(Bh_y,Bh_x,bc_d)+nu*ht*(
     tensor2(Bh_y,Ah_x,bc_d)+tensor2(Ah_y,Bh_x,bc_d)
 ));
 
@@ -167,7 +171,7 @@ for k = 1:n_steps;
             + ht*ext3(1)*ams_buff(km1,:,:)
             + ht*ext3(2)*ams_buff(km2,:,:)
             + ht*ext3(3)*ams_buff(km3,:,:)
-        )) + bc_n - A_bc_d);
+        )) + bc_n - H_d);
 
     elseif k == 2; % BDF2
         rhs_buff(:,:) = tensor2(Ry, Rx, tensor2(Bh_y, Bh_x, -squeeze(
@@ -175,13 +179,13 @@ for k = 1:n_steps;
             + bdf2(3)*soln_buff(km2,:,:)
             + ht*ext2(1)*ams_buff(km1,:,:)
             + ht*ext2(2)*ams_buff(km2,:,:)
-        )) + bc_n - A_bc_d);
+        )) + bc_n - H_d);
         
     else; % BDF1
         rhs_buff(:,:) = tensor2(Ry, Rx, tensor2(Bh_y, Bh_x, -squeeze(
             bdf1(2)*soln_buff(km1,:,:)
             + ht*ext1(1)*ams_buff(km1,:,:)
-        )) + bc_n - A_bc_d);
+        )) + bc_n - H_d);
 
     end;
 
@@ -217,19 +221,20 @@ for k = 1:n_steps;
         );
     end;
 
+    % Update H*u_b and force analytical input if applicable
     if k == 1;
-        A_bc_d = sparse(bdf2(1)*tensor2(Bh_y,Bh_x,bc_d)+nu*ht*(
+        H_d = sparse(bdf2(1)*tensor2(Bh_y,Bh_x,bc_d)+nu*ht*(
             tensor2(Bh_y,Ah_x,bc_d)+tensor2(Ah_y,Bh_x,bc_d)
         ));
         if use_analytical_soln;
-            soln_buff(kc,:,:) = fa{2}(k*ht,x,y);
+            soln_buff(kc,:,:) = fsoln(k*ht,x,y);
         end;
     elseif k == 2;
-        A_bc_d = sparse(bdf3(1)*tensor2(Bh_y,Bh_x,bc_d)+nu*ht*(
+        H_d = sparse(bdf3(1)*tensor2(Bh_y,Bh_x,bc_d)+nu*ht*(
             tensor2(Bh_y,Ah_x,bc_d)+tensor2(Ah_y,Bh_x,bc_d)
         ));
         if use_analytical_soln;
-            soln_buff(kc,:,:) = fa{2}(k*ht,x,y);
+            soln_buff(kc,:,:) = fsoln(k*ht,x,y);
         end;
     end;
 
