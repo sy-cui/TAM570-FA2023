@@ -4,7 +4,7 @@ function [x, y, soln, et] = adv_diff_2d(
     fcx,                % cx(x, y): x-advection speed function
     fcy,                % cy(x, y): y-advection speed function
     f0,                 % u^0(x, y): Initial condition evaluation function 
-    fs,                 % f(t, x, y): Source term function 
+    fsrc,               % f(t, x, y): Source term function 
     Tend,               % Total march time
     CFL,                % Courant-Friedrich-Lewy number
     ht=0,               % Time step size. This is only used if advection speed is zero. 
@@ -110,7 +110,7 @@ soln_buff(1,:,:) = f0(x, y);
 
 % Advection - Source buffer
 ams_buff = zeros(4, nx+1, ny+1);
-ams_buff(4,:,:) = -fs(0,x,y);
+ams_buff(4,:,:) = -fsrc(0,x,y);
 ams_buff(3,:,:) = ams_buff(4,:,:);
 ams_buff(2,:,:) = ams_buff(4,:,:);
 ams_buff(1,:,:) = (
@@ -142,6 +142,7 @@ bc_n(1, :) = bc_n_val(1)*ones(1,ny+1)*Bh_y;
 bc_n(end, :) = bc_n_val(2)*ones(1,ny+1)*Bh_y; 
 bc_n(:, 1) = Bh_x*bc_n_val(3)*ones(nx+1,1); 
 bc_n(:, end) = Bh_x*bc_n_val(4)*ones(nx+1,1); 
+bc_n(:,:) = nu * ht * bc_n;
 
 %% ==================== Setup ends ====================
 
@@ -204,7 +205,7 @@ for k = 1:n_steps;
     soln_buff(kc,:,:) = squeeze(soln_buff(kc,:,:)) + bc_d;
 
     % Update advection - source term
-    ams_buff(kc,:,:) = -fs(k*ht, x, y);
+    ams_buff(kc,:,:) = -fsrc(k*ht, x, y);
     if advection;
         ams_buff(kc,:,:) = (squeeze(ams_buff(kc,:,:)) 
             + cx.*(Dh_x*squeeze(soln_buff(kc,:,:))) 
