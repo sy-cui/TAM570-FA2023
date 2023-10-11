@@ -15,7 +15,10 @@ CFL = 0.5;
 ht = 0;
 bct = 'dddd';
 bcv = [0 0 0 0];
-[x,y,s,et]=adv_diff_2d([40,40],nu,fcx,fcy,f0,fsrc,Tend,CFL,ht,bct);
+bp = [-1 1 -1 1];
+fa = {true, @(t,x,y) exp(-((x-x0*cos(t)).^2+(y-x0*sin(t)).^2)/0.016)};
+% [x,y,s,et]=adv_diff_2d([40,40],nu,fcx,fcy,f0,fsrc,Tend,CFL,ht,bct);
+% fsoln = @(x,y) exp(-((x-x0*cos(Tend)).^2+(y-x0*sin(Tend)).^2)/0.016);
 
 if run_convergence;
     % Convergence
@@ -24,7 +27,7 @@ if run_convergence;
     for i=1:length(n);
         N = n(i);
         fprintf('Solving n = %d \t', N);
-        [x,y,s,et]=adv_diff_2d([N,N],nu,fcx,fcy,f0,fsrc,Tend,CFL,ht,bct);
+        [x,y,s,et]=adv_diff_2d([N,N],nu,fcx,fcy,f0,fsrc,Tend,CFL,ht,bct,bcv,bp,fa);
         errors(i) = max(max(abs(s-f0(x,y))));
         fprintf('Elapsed time is %f \n', et);
     end;
@@ -32,7 +35,7 @@ if run_convergence;
     save(strcat(['adv_errs_cfl_',strrep(num2str(CFL),'.','pt'),'.mat']),'CFL','n','errors')
 end;
 
-figure(1, 'Units', 'inches', 'Position', [2 2 4 4]); box on;
+figure(1, 'Units', 'inches', 'Position', [2 2 8 5]); box on;
     hold on
     load('adv_errs_cfl_0pt25.mat')
     semilogy(n, errors, '-ok', lw, 1.5)
@@ -41,10 +44,14 @@ figure(1, 'Units', 'inches', 'Position', [2 2 4 4]); box on;
     load('adv_errs_cfl_1.mat')
     semilogy(n, errors, '-ob', lw, 1.5)
     xlabel('$N$', intp, ltx); ylabel('$L_\infty$ error', intp, ltx);
+    plot(n, 80*exp(-n/3.5), '-.', lw, 1.5, 'color', [0 0.4470 0.7410]);
+    plot(n, 7e5*n.^(-6), '-.', lw, 1.5, 'color', [0.8500 0.3250 0.0980]);
+    plot(n, 7/8*1e5*n.^(-6), '-.', lw, 1.5, 'color', [0.4940 0.1840 0.5560]);
     ylim([1e-7 10])
-    legend('$CFL=0.25$', '$CFL=0.5$', '$CFL=1.0$', intp, ltx);
+    legend('$\text{CFL}=0.25$', '$\text{CFL}=0.5$', '$\text{CFL}=1.0$', 
+        '$E = e^{-\mu N}$', '$E = \alpha N^{-6}$', '$E = \alpha N^{-6}/8$', intp, ltx);
     hold off
-    set(gca, fs, 12, fn, 'serif', lw, 1.5);
+    set(gca,fs,16,fn,'serif',lw,1.5);
     savefig_pdf('01_01_convergence')
 
 % Mesh plots
