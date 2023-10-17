@@ -1,0 +1,30 @@
+
+%
+%  These files contain a 2D Navier-Stokes demo based upon the
+%  BDF3/EXT3 splitting described in class.
+%
+%  The basic test case is a set of decaying Taylor-Green vortices
+%  on [0,2pi]^2.
+%
+%  The TGV is an eigenfunction of the NS equations so the
+%  amplitude decays exponentially. We can thus compute the 
+%  analytical solution for any time and compare this to the
+%  numerical solution.
+%
+
+
+
+tgv_base.m    %% Run baseline Taylor-Green vortex problem on periodic domain
+advect.m      %% Advection operator
+r_periodic.m  %% Build periodic restriction matrix
+
+%   Standard SEM files here:
+
+hdr.m
+zwgl.m
+zwgll.m
+zwuni.m
+semhat.m
+deriv_mat.m
+interp_mat.m
+gen_eig_ortho.m
