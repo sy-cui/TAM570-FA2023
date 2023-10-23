@@ -32,9 +32,10 @@ perturb = err{4};
 save("orr_sommerfield.mat", "t", "perturb")
 
 load("orr_sommerfield.mat")
+perturb = perturb * sqrt(4*pi);
 figure(2, 'Units', 'inches', 'Position', [2 2 6 6]); box on;
 hold on;
-coeff = 1.85e-6;
+coeff = 6.5e-6;
 semilogy(t, perturb, '-k', lw, 1.5);
 semilogy(t, coeff*exp(w_i*t), '-r', lw, 1.5);
 hold off;
