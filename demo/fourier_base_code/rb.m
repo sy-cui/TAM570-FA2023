@@ -12,31 +12,31 @@
 %    It can be modified to solve the Orr-Sommerfeld model 
 %    problem.
 %
-
+clear all; close all;
 hdr;
-x0=0; x1=2*pi; Lx=x1-x0;   % Domain coordinates and size
-y0=0; y1=1;    Ly=y1-y0; 
+x0=0; x1=1; Lx=x1-x0;   % Domain coordinates and size
+y0=0; y1=1; Ly=y1-y0; 
 
 tfinal = 5;               % Final time
 
-Ra = 1000;                  % Rayleigh number
-Pr = 1;                 % Prandtl number
+Ra = 3000;                  % Rayleigh number
+Pr = 0.71;                 % Prandtl number
 
 nu = Pr;
 alpha=1;
 
-Nx=32; Ny=18; CFL = 0.1;
+Nx=32; Ny=32; CFL = 0.005;
 
 [Ahx,Bhx,Chx,Dhx,zx,wx] =  semhat(Nx); nhx = Nx+1; Ihx = speye(nhx); 
 [Ahy,Bhy,Chy,Dhy,zy,wy] =  semhat(Ny); nhy = Ny+1; Ihy = speye(nhy); 
 
-Mx=ceil(1.2*Nx); [zmx,wmx]=zwgl (Mx); Jx=interp_mat(zmx,zx); Dtx=Jx*Dhx;
-My=ceil(1.2*Ny); [zmy,wmy]=zwgl (My); Jy=interp_mat(zmy,zy); Dty=Jy*Dhy;
+Mx=ceil(1.5*Nx); [zmx,wmx]=zwgl (Mx); Jx=interp_mat(zmx,zx); Dtx=Jx*Dhx;
+My=ceil(1.5*Ny); [zmy,wmy]=zwgl (My); Jy=interp_mat(zmy,zy); Dty=Jy*Dhy;
 
-Nfx = 5+ceil(1.7*Nx); [zfx,w]=zwuni(Nfx); Jfx=interp_mat(zfx,zx); % plotting
-Nfy = 5+ceil(1.7*Ny); [zfy,w]=zwuni(Nfy); Jfy=interp_mat(zfy,zy); % plotting
+Nfx = 5+ceil(1.7*Nx); Nfx = 32; [zfx,w]=zwuni(Nfx); Jfx=interp_mat(zfx,zx); % plotting
+Nfy = 5+ceil(1.7*Ny); Nfy = 32; [zfy,w]=zwuni(Nfy); Jfy=interp_mat(zfy,zy); % plotting
 
-ifourier = 1; if ifourier > 0; % Use nodal Fourier in x (1=yes, 0=no)
+ifourier = 0; if ifourier > 0; % Use nodal Fourier in x (1=yes, 0=no)
  [Ahx,Bhx,Chx,Dhx,zx,wx]= fsemhat(Nx); nhx = Nx+1; Ihx = speye(nhx); 
  Mx=ceil(1.5*Nx);      [zmx,wmx]=zwuni(Mx);  Jx =f_interp_mat(zmx,zx); Dtx=Jx*Dhx;
  Nfx = 5+ceil(1.7*Nx); [zfx,w]=zwuni(Nfx);   Jfx=f_interp_mat(zfx,zx); % plotting
@@ -59,27 +59,20 @@ F1=O;F2=O;F3=O; G1=O;G2=O;G3=O;
 f1=O;f2=O;f3=O; g1=O;g2=O;g3=O;
 T1=O;T2=O;T3=O; H1=O;H2=O;H3=O;
 
-delta = 0.10*(Lx/2);
-Xt = X-.0*(Lx/2);   %  Xt = sin(pi*Xt);
-Yt = Y-.0*(Ly/2);   %  Xt = sin(pi*Xt);
-R2 = Yt.*Yt + Xt.*Xt;
-T  = sin(2*pi*X/Lx).*(1-Y.*Y);
-T  = exp(-(R2/(delta*delta)).^1);
-
 Bhh = (wx*wy');
 Bxy = (Lx*Ly/4)*Bhh;
 
 RXx=Ihx(2:end-1,:);      RXy=Ihy(2:end-1,:);
 RYx=Ihx(2:end-1,:);      RYy=Ihy(2:end-1,:);
-RTx=RXx;                 RTy=RYy;
+RTx=Ihx;                 RTy=Ihy(2:end-1,:);
 RPx=Ihx;                 RPy=Ihy;  %% Pure Neumann for Pressure
 
 % Set periodicity (here, in x-direction only).
 
-RXx=r_periodic(Nx);  %   RXy=r_periodic(Ny);
-RYx=r_periodic(Nx);  %   RYy=r_periodic(Ny);
-RTx=r_periodic(Nx);  %   RTy=r_periodic(Ny);
-RPx=r_periodic(Nx);  %   RPy=r_periodic(Ny);
+% RXx=r_periodic(Nx);  %   RXy=r_periodic(Ny);
+% RYx=r_periodic(Nx);  %   RYy=r_periodic(Ny);
+% RTx=r_periodic(Nx);  %   RTy=r_periodic(Ny);
+% RPx=r_periodic(Nx);  %   RPy=r_periodic(Ny);
 
 Qx = RXx'; Qy = RXy';      % For projection into continuous
 Wt = ones(Nx+1,Ny+1);      % space; for plotting purposes only.
@@ -109,11 +102,11 @@ ex=1+0*DPx; ey=1+0*DPy; PLam=ex*DPy' + DPx*ey';
 
 PLam(1,1) = 1;  DPi=1./PLam; DPi(1,1) = 0;  %% Neumann operator for pressure
 
-dx   = min(diff(x)); dy   = min(diff(y)); dx=min(dx,dy);
-c    = 2;
+dx   = min(diff(zx)); dy   = min(diff(zy)); dx=min(dx,dy);
+c    = 1;
 if c>0;  dt = CFL*(dx/c);   end; 
 if c==0; dt = CFL*dx;       end; 
-nsteps = floor(tfinal/dt);
+nsteps = ceil(tfinal/dt);
 iostep = floor(nsteps/90);
 nsteps = iostep*ceil(nsteps/iostep);
 dt     = tfinal/nsteps;
@@ -124,12 +117,15 @@ tstart=tic; k=0; kk=0; clear tt uu vv ee tnt unt;
 U0 = 0*X;                          %% Set initial conditions
 V0 = 0*X;                             %% Set initial conditions
 
-U = U0;
-V = V0;
-T(:, 1) = 1;
+epsilon = 1e-3;
+U = U0;% + epsilon * sin(2*pi*X/Lx) * sin(2*pi*Y/Ly);
+V = V0;% - epsilon * sin(2*pi*X/Lx) * sin(2*pi*Y/Ly);
+T = 0*X;
 
 Tbc_d = zeros(Nx+1,Ny+1); Tbc_d(:,1) = 1;   % Lower wall T_1 = 1
 Tbc_d = sparse(Tbc_d);
+T = T + Tbc_d;
+T(:,1:Ny/2) = 1; T(:,Ny/2:end) = 0;
 
 errors = zeros(1, nsteps);
 for iloop=1:1;
@@ -138,7 +134,7 @@ for iloop=1:1;
      ndt = nu*dt;
      adt = alpha*dt;
      if k==1; a1=1; a2=0; a3=0; b0=1; b1=1; b2=0; b3=0; end;
-     if k==2; a1=1.5; a2=-.5; a3=0; b0=1.5; b1=2; b2=-.5; b3=0; end;
+     if k==2; a1=2; a2=-1; a3=0; b0=1.5; b1=2; b2=-.5; b3=0; end;
      if k==3; a1=3; a2=-3; a3=1; b0=11/6; b1=3; b2=-1.5; b3=2/6; end;
      if k<4; DXi=1./(ndt*XLam+b0);DYi=1./(ndt*YLam+b0);DTi=1./(adt*TLam+b0);end;
      d1=dt*a1; d2=dt*a2; d3=dt*a3;
@@ -213,7 +209,6 @@ for iloop=1:1;
      errors(k) = sum(sum(Bxy.*(Ut.*Ut + Vt.*Vt)));
 
      if mod(k,100) ==0 || k==1;  kk=kk+1;
-
        Ut = U; Vt=V;
 
        vv(kk) = vmax; uu(kk) = umax; tt(kk) = time;
@@ -222,11 +217,13 @@ for iloop=1:1;
 
        Omega = Lxi*(Dhx*Vt) - Lyi*(Ut*Dhy');   
 
-       Uf=Jfx*Ut*Jfy'; Vf=Jfx*Vt*Jfy'; Tf=Jfx*(Omega)*Jfy';
-     %   hold off; contour (Xf,Yf,Tf);  axis equal;
-       hold on;  quiver  (Xf,Yf,Uf,Vf,'k-'); axis equal;
+       Uf=Jfx*Ut*Jfy'; Vf=Jfx*Vt*Jfy'; Tf=Jfx*T*Jfy';
+     %   hold off; contour (Xf,Yf,Uf);  axis equal;
+       colorbar
+     %   hold off;  quiver  (Xf,Yf,Uf,Vf,'k-'); axis equal;
+     hold off; contourf(Xf,Yf,Tf); axis equal
        ylim([0 1])
-       xlim([0 2*pi])
+       xlim([0 1])
      %   axis([Xm XM Ym YM ]); axis off;  axis equal;
        s=['Time,UVT_{max}: ' num2str(time) ',   ' num2str(umax) ',   ' ...
                        num2str(vmax) ',  ' num2str(istep)'.'];
