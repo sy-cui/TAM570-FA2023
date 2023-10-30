@@ -1,0 +1,17 @@
+*.pdf 
+*.mat 
+*.png
+*.jpg
+*.svg
+*.eps
+*.gif
+*.ai
+*.mp4
+*.csv
+.DS_Store
+
+# Project 1 
+prj1/plotting_data
+prj1/figures
+prj1/data
+prj1/plotting.m
