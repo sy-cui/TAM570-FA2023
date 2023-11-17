@@ -1,0 +1,9 @@
+
+Chebyshev vs. Jacobi smoothing comparison for 2D SEM examples.
+
+Drivers:
+
+     slide_table.m
+
+     slide_figs.m             (same as above but produces .png files)
+

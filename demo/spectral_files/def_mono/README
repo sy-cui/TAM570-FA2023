@@ -1,0 +1,15 @@
+
+This case supports monodomain spectral methods with nodal Fourier and nodal Legendre 
+bases.
+
+Several deformation options are given.
+
+Run / edit
+
+pcg_err_chk.m
+
+to test.  
+
+There are two iterative solver options - diagonally precondition CG
+or FDM-preconditioned CG.
+

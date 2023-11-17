@@ -1,0 +1,6 @@
+
+os_case  - full 2D Navier-Stokes Fourier X Legendre, OS test problem 
+def_mono - deformed monodomain Poisson solver supporting Fourier X Legendre
+sem_def  - deformed multidomain Poisson solver supporting Legendre spectral elements
+
+

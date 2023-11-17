@@ -1,0 +1,32 @@
+
+Here is an example of nodal Fourier X nodal Legendre Navier-Stokes in 2D
+
+The test case is "os_fourier.m" , which recreates the OS growth rate
+at Re=7500.
+
+
+-rw-r--r--@  1 fischer1  staff   679 Oct 25  2021 zwgll.m
+-rw-r--r--@  1 fischer1  staff   382 Jun  5 17:28 semhat.m
+-rw-r--r--@  1 fischer1  staff   208 Jul 12 13:39 zwuni.m
+-rw-r--r--@  1 fischer1  staff   571 Jul 12 13:40 interp_mat.m
+-rw-r--r--@  1 fischer1  staff   775 Sep 23 11:10 deriv_mat.m
+-rw-r--r--   1 fischer1  staff   112 Oct  9 12:28 r_periodic.m
+-rw-r--r--   1 fischer1  staff  1291 Oct  9 12:51 zwgl.m
+-rw-r--r--@  1 fischer1  staff  6778 Oct 10 21:15 tgv_base.m
+-rw-r--r--@  1 fischer1  staff  6788 Oct 17 21:05 os2_model.m
+-rw-r--r--@  1 fischer1  staff   778 Oct 17 21:06 f_deriv_mat.m
+-rw-r--r--@  1 fischer1  staff   800 Oct 17 21:06 f_interp_mat.m
+-rw-r--r--   1 fischer1  staff   345 Oct 17 21:14 fsemhat.m
+-rw-r--r--   1 fischer1  staff   103 Oct 17 21:22 advect.m
+-rw-r--r--   1 fischer1  staff  1110 Oct 17 21:54 gen_eig_ortho.m
+-rw-r--r--   1 fischer1  staff    98 Oct 17 21:55 advects.m
+-rw-r--r--@  1 fischer1  staff  6639 Oct 17 22:06 os2.m
+-rw-r--r--@  1 fischer1  staff  7033 Oct 17 22:14 osf.m
+-rw-r--r--   1 fischer1  staff   256 Oct 18 07:46 hdr.m
+-rw-r--r--   1 fischer1  staff   805 Oct 18 08:02 plot_bases.m
+-rw-r--r--@  1 fischer1  staff  6363 Oct 18 14:22 model1.m
+-rw-r--r--@  1 fischer1  staff  6964 Oct 18 20:22 os_fourier.m
+-rw-r--r--@  1 fischer1  staff   630 Oct 22 22:17 lfsemhat.m
+drwxr-xr-x   7 fischer1  staff   224 Nov  6 07:44 ..
+-rw-r--r--   1 fischer1  staff     0 Nov  6 08:00 dir.out
+drwxr-xr-x  25 fischer1  staff   800 Nov  6 08:00 .
