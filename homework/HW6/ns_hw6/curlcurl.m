@@ -11,12 +11,10 @@ function [curlcurlX,curlcurlY,Omega]=curlcurl(U,V,Q,Bl,Rx,Dh);
      sx = Rx(:,:,:,2,1);  % ds/dx
      sy = Rx(:,:,:,2,2);  % ds/dy 
 
-     ur = V.*rx - U.*ry;
-     us = V.*sx - U.*sy;
-
-     Omega = tensor3(1,1,Dh,ur) + tensor3(Dh,1,1,us);
-     curlcurlX = tensor3(1,1,Dh,ry.*Omega) + tensor3(Dh,1,1,sy.*Omega);
-     curlcurlY = -tensor3(1,1,Dh,rx.*Omega) - tensor3(Dh,1,1,sx.*Omega);
+     Omega = tensor3(1,1,Dh,V).*rx + tensor3(Dh,1,1,V).*sx ...
+          - tensor3(1,1,Dh,U).*ry - tensor3(Dh,1,1,U).*sy;
+     curlcurlX = ry.*tensor3(1,1,Dh,Omega) + sy.*tensor3(Dh,1,1,Omega);
+     curlcurlY = -rx.*tensor3(1,1,Dh,Omega) - sx.*tensor3(Dh,1,1,Omega);
      curlcurlX = Bl.*curlcurlX;
      curlcurlY = Bl.*curlcurlY;
 
