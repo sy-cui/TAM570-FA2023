@@ -9,8 +9,8 @@ function Wl = axl(Ul,b0,nu,Bl,Grr,Grs,Gss,Dh);
 % Dhr - derivative in Omega-hat, r direction
 % Dhs - derivative in Omega-hat, s direction
 
-Ur = tensor3(1,1,Dh,Ul);              % dx/dr: 
-Us = tensor3(Dh,1,1,Ul);              % dx/ds: 
+Ur = tensor3(1,1,Dh,Ul);              % dU/dr: 
+Us = tensor3(Dh,1,1,Ul);              % dU/ds: 
 
 Wr = nu.*(Grr.*Ur + Grs.*Us);  % Can support variable nu
 Ws = nu.*(Grs.*Ur + Gss.*Us);

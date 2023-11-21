@@ -2,7 +2,7 @@ function [Grr,Grs,Gss,B,Xr,Rx,Jac]=geom_elem(X,Y,Dh,w);
 
 hdr;
 
-n = length(w);  N=n-1;
+N1= length(w);  N=N1-1;
 E = size(X,2);
 
 Grr = 0*X; Grs=Grr; Gss=Grr; Jac=Grr; B=Gss;
@@ -13,8 +13,8 @@ for e=1:E
 end;
 
 
-Xr=zeros(n,E,n,2,2);
-Rx=zeros(n,E,n,2,2);
+Xr=zeros(N1,E,N1,2,2);
+Rx=zeros(N1,E,N1,2,2);
 
 %  Compute dx_i / dr_j
 

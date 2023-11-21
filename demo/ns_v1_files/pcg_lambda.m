@@ -1,7 +1,9 @@
 function [x,iter,res,lam_max]=...
-      pcg_lambda(Fl,tol,max_iter,b0,nu,M,Q,Bl,Grr,Grs,Gss,Dh,Di,ifnull);
+      pcg_lambda(Fl,tol,max_iter,b0,nu,M,Q,Bl,Grr,Grs,Gss,Dh,dA,ifnull);
 
 % Solve H u = f via CG,  H = b0*B + nu*A
+
+hdr;
 
 %
 %   A = D^T G D
@@ -26,13 +28,14 @@ rho1=1; rtz1=1; r=Fl; x=0*r; p=x;
 
 d=zeros(max_iter,1); l=d; u=d; %% For eigenvalue estimates
 
+hold off;
 for iter=1:max_iter;
 
-   z=Di.*(M.*qqt(Q,r));   %% diagonal preconditioner
-%  z=(M.*qqt(Q,r));   %% diagonal preconditioner
+   z=dA.*(M.*qqt(Q,r));   %% diagonal preconditioner
    rtz0 = rtz1; rtz1=sum(sum(sum(z.*r))); beta=rtz1/rtz0;
    res=sqrt(rtz1);
-   if res < tol; break; end;
+   if iter > 1 && res < tol; break; end;
+   if res == 0; break; end;
    p=z+beta*p;
    w=axl(p,b0,nu,Bl,Grr,Grs,Gss,Dh);
    rho0 = rho1; rho1 = sum(sum(sum(p.*w))); alpha = rtz1/rho1;
@@ -56,8 +59,13 @@ T=spdiags([l d u],-1:1,iter,iter); T=full(T);
 d=eig(T); 
 lam_min=min(d);
 lam_max=max(d);
-condition = lam_max / lam_min;
+
+
+condition = 1;
+if lam_min > 0; condition = lam_max / lam_min; end;
 
 % format shorte;
 % disp([iter res lam_min lam_max condition])
+
+% pause(.01)
 

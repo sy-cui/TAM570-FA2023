@@ -12,9 +12,8 @@ R_inner = 1.0;
 R_outer = 1.5;
 dR = R_outer-R_inner;
 
-Theta = pi*X/2;
+Theta = pi*X;
 R     = R_inner + dR*0.5*(1+Y);
 
 Xm=R.*sin(Theta);
 Ym=R.*cos(Theta);
-
