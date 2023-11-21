@@ -4,4 +4,7 @@
 *.jpg
 *.svg
 *.eps
+*.mp4
+*.csv
+*.py
 .DS_Store
