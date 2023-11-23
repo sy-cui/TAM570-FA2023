@@ -95,9 +95,9 @@ for istep =1:nsteps; k=k+1;
      Vb= 0*X;
      Tb= 0*X; Tb(:,Esq,:)=1; Tb=qqt_op(Tb,'+',glo_num);
 
-     % Ub = Mu.*U + (1-Mu).*Ub;
-     % Vb = Mv.*V + (1-Mv).*Vb;
-     % Tb = Mt.*T + (1-Mt).*Tb;
+     Ub = Mu.*U + (1-Mu).*Ub;
+     Vb = Mv.*V + (1-Mv).*Vb;
+     Tb = Mt.*T + (1-Mt).*Tb;
 
 %%   Compute u-hat and u-tilde
      U3=U2;U2=U1;U1=U;
