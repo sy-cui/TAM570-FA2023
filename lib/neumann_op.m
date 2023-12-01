@@ -2,7 +2,8 @@ function [A,S,L] = neumann_op(
     dim,% dimension of the problem, 2 or 3
     R,  % {Rr, Rs, Rt} restriction matrices
     w,  % {wr, ws, wt} quadrature weights
-    D   % {Dr, Ds, Dt} differentiation matrices
+    D,  % {Dr, Ds, Dt} differentiation matrices
+    dl  % {Lr, Ls, Lt} domain lengths
     );
     % Return the restricted Neumann opeartor without deformation
     %       A = R D^T B D R^T
@@ -18,7 +19,7 @@ function [A,S,L] = neumann_op(
     L = cell(1,dim);
 
     for i=1:dim;
-        Bh = diag(w{i}); Ah = D{i}'*Bh*D{i};
+        Bh = (dl{i}/2)*diag(w{i}); Ah = (4/dl{i}^2)*D{i}'*Bh*D{i};
         A{i} = R{i}*Ah*R{i}';
         [S{i},L{i}] = gen_eig_decomp(A{i},R{i}*Bh*R{i}');
         L{i} = diag(full(L{i}));
