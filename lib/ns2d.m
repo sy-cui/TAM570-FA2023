@@ -107,10 +107,10 @@ Ru_x = speye(nx+1)(2:end-1,:); Ru_y = speye(ny+1)(2:end-1,:);
 Rv_x = speye(nx+1)(2:end-1,:); Rv_y = speye(ny+1)(2:end-1,:);
 Rp_x = speye(nx+1)(2:end-1,:); Rp_y = speye(ny+1);
 Rt_x = speye(nx+1)(2:end-1,:); Rt_y = speye(ny+1)(2:end-1,:);
-Ru_x = r_periodic(nx); %Ru_y = r_periodic(ny);
-Rv_x = r_periodic(nx); %Rv_y = r_periodic(ny);
-Rp_x = r_periodic(nx); %Rp_y = r_periodic(ny);
-Rt_x = r_periodic(nx); %Rt_y = r_periodic(ny);
+Ru_x = r_periodic(nx); Ru_y = r_periodic(ny);
+Rv_x = r_periodic(nx); Rv_y = r_periodic(ny);
+Rp_x = r_periodic(nx); Rp_y = r_periodic(ny);
+Rt_x = r_periodic(nx); Rt_y = r_periodic(ny);
 
 % Operation matrices
 Ah_x = Ah_x / Jac_x; Ah_y = Ah_y / Jac_y;
@@ -224,8 +224,8 @@ for k = 1:n_steps;
         + a1*AMSt{km1} + a2*AMSt{km2} + a3*AMSt{km3});
 
     % Step 2: Solve for pressure
-    Ut(:,:) = Uh - ht/Re*(a1*CurlVort_x{km1} + a2*CurlVort_x{km2} + a3*CurlVort_x{km3});
-    Vt(:,:) = Vh - ht/Re*(a1*CurlVort_y{km1} + a2*CurlVort_y{km2} + a3*CurlVort_y{km3});
+    Ut(:,:) = Uh - (a1*CurlVort_x{km1} + a2*CurlVort_x{km2} + a3*CurlVort_x{km3});
+    Vt(:,:) = Vh - (a1*CurlVort_y{km1} + a2*CurlVort_y{km2} + a3*CurlVort_y{km3});
     P(:,:) = (1/ht)*tensor2(
         Sp_y, Sp_x, Lp_inv.*tensor2(Sp_y', Sp_x', Dh_x'*Ut + Vt*Dh_y));
 
@@ -262,13 +262,13 @@ for k = 1:n_steps;
 
     % Exact solution: compute L2-error norm
     if exact_u;
-        % if k < 3; U{kc}(:,:) = u_ext(k*ht,x,y); end;
+        if k < 3; U{kc}(:,:) = u_ext(k*ht,x,y); end;
         u_err(k) = sum(sum(Bh_xy.*(U{kc}-u_ext(k*ht,x,y)).^2));
         u_err(k) = sqrt((0.25/Jac_x/Jac_y)*u_err(k));
     end;
 
     if exact_v;
-        % if k < 3; V{kc}(:,:) = v_ext(k*ht,x,y); end;
+        if k < 3; V{kc}(:,:) = v_ext(k*ht,x,y); end;
         v_err(k) = sum(sum(Bh_xy.*(V{kc}-v_ext(k*ht,x,y)).^2));
         v_err(k) = sqrt((0.25/Jac_x/Jac_y)*v_err(k));
     end;
@@ -288,18 +288,16 @@ for k = 1:n_steps;
 
     % Plotting
     if k == 1 || k==n_steps || mod(k, ceil(n_steps / 50)) == 0;
-        % figure(1, 'Units', 'inches', 'Position', [2 2 5 5])
-        % % quiver(xu,yu,tensor2(Ju_y, Ju_x, U{kc}), tensor2(Ju_y, Ju_x, V{kc}))
-        % JU = Ju_x * U{kc} * Ju_y';
-        % plot(zu_y, JU(ceil(nx/2), :))
-        % sum(sum(P))
-        % ylim([0 1])
-        % % pbaspect([1 1 1])
-        % % xlim([bp(1) bp(2)]); ylim([bp(3) bp(4)]);
-        % % zlim([0 1])
-        % title(uv_err(k))
-        % % pause(0.01)
+        figure(1, 'Units', 'inches', 'Position', [2 2 5 5])
+        % quiver(xu,yu,tensor2(Ju_y, Ju_x, U{kc}), tensor2(Ju_y, Ju_x, V{kc}))
+        JU = Ju_x * U{kc} * Ju_y';
+        mesh(xu,yu,u_ext(k*ht,xu,yu))
+        % pbaspect([1 1 1])
+        % xlim([bp(1) bp(2)]); ylim([bp(3) bp(4)]);
+        % zlim([0 1])
+        title(uv_err(k))
         % pause(0.01)
+        pause(0.01)
     end;
     
 end; % Time loop

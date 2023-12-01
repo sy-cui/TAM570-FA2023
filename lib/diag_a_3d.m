@@ -1,0 +1,16 @@
+function [dA] = diag_a_3d(D,G);
+    % Return the diagonal of the Neumann operator A in grid form
+    % D and G are cell arrays of length 3 
+    % containing the differentiation and deformation tensors
+    dDr = diag(diag(D{1}));
+    dDs = diag(diag(D{2}));
+    dDt = diag(diag(D{3}));
+    dA = tensor3(1,1,(D{1}.^2)',G{1})+...
+         tensor3(1,(D{2}.^2)',1,G{2})+...
+         tensor3((D{3}.^2)',1,1,G{3})+...
+         tensor3(1,dDs,dDr,G{4})*2+...
+         tensor3(dDt,1,dDr,G{5})*2+...
+         tensor3(dDt,dDs,1,G{6})*2;
+end;
+
+
