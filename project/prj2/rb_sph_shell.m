@@ -1,53 +1,48 @@
 addpath('/Users/sycui/Desktop/course_work/Fall_2023/TAM570/lib');
 premeable;
 
-N       = [16,16,16];
-Tend    = 5; 
-Re      = 100; 
-Ra      = 1000;
+N       = [8,8,8];
+Tend    = 100; 
+Ra      = 100;
 Pr      = 1;
 CFL     = 0.01;
-kc      = 3.117;
+l       = 1;
+ratio   = 0.5;
 
 nu      = Pr; 
 alpha   = 1;
+temp_fac = Ra*Pr;
+
+% nu = sqrt(Pr / Ra);
+% alpha = 1 / sqrt(Ra * Pr);
+% temp_fac = 1;
 
 % PCG params
-tol=1e-5; max_iter=10; sdim=20;
+tol=1e-5; max_iter=1000; sdim=20;
 
 % Basic setup
 nx=N(1);ny=N(2);nz=N(3);
-[dim,x,w,D,wm,Jm,Jf] = set_mono_param(N);
+[dim,x,w,D,wm,Jm,Jf] = set_mono_param(N,[1,0,0]);
 [r,s,t] = x{:};
-x = pi/kc*(r+1);
-y = pi/kc*(s+1); 
-z = 0.5*(t+1); 
-% x=r;y=s;z=t;
+x=r;y=s;z=t;
 [X,Y,Z] = ndgrid(x,y,z); 
+[X,Y,Z,Rad,Pol,Azi] = morph_sphere(X,Y,Z,ratio,1.0);
 Xf=t3w(Jf,X); Yf=t3w(Jf,Y); Zf=t3w(Jf,Z); 
-% [X,Y,Z] = morph_sphere(X,Y,Z,1.0,1.5);
 [Rx,G,B,Jac] = geom_elem_3D(X,Y,Z,D,w);
-% vol = 4/3*pi*(1.5^3-1)
-% scatter3(X(:,:,1),Y(:,:,1),Z(:,:,1)); axis equal
+vol = 4/3*pi*(1-ratio^3)
 [JRx,JD,Bm] = set_dealiase_op(dim,D,wm,Jm,Rx,Jac);
 
 % Time steps
-dl = {x(end)-x(1), y(end)-y(1), z(end)-z(1)};
-dx = min([x(2)-x(1) y(2)-y(1) z(2)-z(1)]);
+dl = {2*pi,pi,1-ratio};
+dx = min([r(2)-r(1) s(2)-s(1) t(2)-t(1)]);
 [dt,nsteps] = cfl_dt(CFL,dx,Tend);
 
 % Operators
-Ru=set_restriction(N,{'p','p','p','p','d','d'}); [Au,Su,Lu]=neumann_op(dim,Ru,w,D,dl);
-Rv=set_restriction(N,{'p','p','p','p','d','d'}); [Av,Sv,Lv]=neumann_op(dim,Rv,w,D,dl);
-Rw=set_restriction(N,{'p','p','p','p','d','d'}); [Aw,Sw,Lw]=neumann_op(dim,Rw,w,D,dl);
-Rt=set_restriction(N,{'p','p','p','p','d','d'}); [At,St,Lt]=neumann_op(dim,Rt,w,D,dl);
-Rp=set_restriction(N,{'p','p','p','p','n','n'}); [Ap,Sp,Lp]=neumann_op(dim,Rp,w,D,dl);
-
-% Ru=set_restriction(N,{'p','p','p','p','p','p'}); [Au,Su,Lu]=neumann_op(dim,Ru,w,D,dl);
-% Rv=set_restriction(N,{'p','p','p','p','p','p'}); [Av,Sv,Lv]=neumann_op(dim,Rv,w,D,dl);
-% Rw=set_restriction(N,{'p','p','p','p','p','p'}); [Aw,Sw,Lw]=neumann_op(dim,Rw,w,D,dl);
-% Rt=set_restriction(N,{'p','p','p','p','p','p'}); [At,St,Lt]=neumann_op(dim,Rt,w,D,dl);
-% Rp=set_restriction(N,{'p','p','p','p','p','p'}); [Ap,Sp,Lp]=neumann_op(dim,Rp,w,D,dl);
+Ru=set_restriction(N,{'p','p','n','n','d','d'}); [Au,Su,Lu]=neumann_op(dim,Ru,w,D,dl);
+Rv=set_restriction(N,{'p','p','n','n','d','d'}); [Av,Sv,Lv]=neumann_op(dim,Rv,w,D,dl);
+Rw=set_restriction(N,{'p','p','n','n','d','d'}); [Aw,Sw,Lw]=neumann_op(dim,Rw,w,D,dl);
+Rt=set_restriction(N,{'p','p','n','n','d','d'}); [At,St,Lt]=neumann_op(dim,Rt,w,D,dl); 
+Rp=set_restriction(N,{'p','p','n','n','n','n'}); [Ap,Sp,Lp]=neumann_op(dim,Rp,w,D,dl);
 
 % Solution fields
 P = zeros(N+1);
@@ -58,13 +53,18 @@ T = {P,P,P};
 
 Uhb=P; Vhb=P; Whb=P; Thb=P;  % Inhomogeneous Dirichlet 
 Thb(:,:,1) = 1; T{1} = Thb;
-% wn = 2*pi; utrans = 1.0; vtrans=1.0;
-% U{1} =  sin(wn*X).*cos(wn*Z)+utrans;
-% W{1} = -cos(wn*X).*sin(wn*Z)+vtrans; 
 epsilon = 1e-3;
-U{1} = epsilon*sin(2*pi*X).*sin(2*pi*Y).*cos(2*pi*Z);
-V{1} = -epsilon*cos(2*pi*X).*sin(2*pi*Y).*cos(2*pi*Z);
-W{1} = epsilon*sin(2*pi*X).*sin(2*pi*Y).*sin(2*pi*Z);
+% Legendre polynomials of cos(\theta)
+cP = cos(Pol);
+if l==1; Yl0 = sqrt(3/pi)/2*cP; end;
+if l==2; Yl0 = sqrt(5/pi)/4*(3*cP.^2-1); end;
+if l==3; Yl0 = sqrt(7/pi)/4*(5*cP.^3-3*cP); end;
+if l==4; Yl0 = sqrt(9/pi)/16*(35*cP.^4-30*cP.^2+3); end;
+if l==5; Yl0 = sqrt(11/pi)/16*(63*cP.^5-70*cP.^3+15*cP); end;
+if ~exist("Yl0"); error("Invalid l value"); end;
+% U{1} = epsilon.*sin(2*pi*Rad).*Yl0;
+% V{1} = epsilon.*sin(2*pi*Rad).*Yl0;
+% W{1} = epsilon.*sin(2*pi*Rad).*Yl0;
 
 % Vorticity and curl of vorticity
 Vort_x = P; Vort_y = P; Vort_z = P;
@@ -96,6 +96,8 @@ qt = @(X,Y,Z,t) 0*X;
 Pk = [];
 dA = diag_a_3d(D,G);
 
+pause
+
 % Time loop
 for k = 1:nsteps;
     fprintf('Progress: %5.2f%% \r', k / nsteps * 100);
@@ -115,7 +117,7 @@ for k = 1:nsteps;
     km1_time = (k-1)*dt;
     Fx=B.*0;
     Fy=B.*0;
-    Fz=B.*Ra*Pr.*T{km1};
+    Fz=B.*temp_fac.*T{km1};
     Qt=B.*0;
 
     [Cr,Cs,Ct] = compute_advect_field_3d(U{km1},V{km1},W{km1},Jm,JRx);
@@ -171,11 +173,8 @@ for k = 1:nsteps;
 
     % Pressure solve
     rhs = pp_rhs(Ut,Vt,Wt,Rx,D,dt);
-    [P,it_p,res_p,pr] = pcg(t3w(Rp,rhs),Pinv_p,Sp,Lp_inv,Rp,D,G,B,0,1,max_iter,tol);
-    % P = t3w(Rp,t3w(Sp,Lp_inv.*t3w(Sp,t3w(Rp,rhs),1)),1);
-    % [P,Pk,it_p,res_p] = pcg_prj(rhs,Pk,Pinv_p,Sp,Lp_inv,Rp,D,G,B,0,1,k,sdim,max_iter,tol);
-
-    % max(max(max(t3w(Rp,rhs) - viscous_op(t3w(Rp,rhs),Rp,D,G,B,0,1))))
+    % [P,it_p,res_p,pr] = pcg(t3w(Rp,rhs),Pinv_p,Sp,Lp_inv,Rp,D,G,B,0,1,max_iter,tol);
+    [P,Pk,it_p,res_p] = pcg_prj(rhs,Pk,Pinv_p,Sp,Lp_inv,Rp,D,G,B,0,1,k,sdim,max_iter,tol);
     [gpx,gpy,gpz] = grad_3d(P,Rx,D);
     Uh=Uh-dt*B.*gpx; Vh=Vh-dt*B.*gpy; Wh=Wh-dt*B.*gpz;
 
@@ -184,10 +183,6 @@ for k = 1:nsteps;
     [V{kc},it_v,res_v,~] = pcg(t3w(Rv,Vh),Pinv_v,Sv,Lv_inv,Rv,D,G,B,b0,ndt,max_iter,tol);
     [W{kc},it_w,res_w,~] = pcg(t3w(Rw,Wh),Pinv_w,Sw,Lw_inv,Rw,D,G,B,b0,ndt,max_iter,tol);
     [T{kc},it_t,res_t,~] = pcg(t3w(Rt,Th),Pinv_t,St,Lt_inv,Rt,D,G,B,b0,adt,max_iter,tol);
-    % U{kc} = t3w(Ru,t3w(Su,Lu_inv.*t3w(Su,t3w(Ru,Uh),1)),1);
-    % V{kc} = t3w(Rv,t3w(Sv,Lv_inv.*t3w(Sv,t3w(Rv,Vh),1)),1);
-    % W{kc} = t3w(Rw,t3w(Sw,Lw_inv.*t3w(Sw,t3w(Rw,Wh),1)),1);
-    % T{kc} = t3w(Rt,t3w(St,Lt_inv.*t3w(St,t3w(Rt,Th),1)),1);
 
     % disp([it_p it_u it_v it_w it_t])
     U{kc}=U{kc}+Ub; V{kc}=V{kc}+Vb; W{kc}=W{kc}+Wb; T{kc}=T{kc}+Tb;
@@ -196,38 +191,30 @@ for k = 1:nsteps;
     wmax = max(max(max(abs(W{kc}))));
     tmax = max(max(max(abs(T{kc}))));
 
-    % ua = sin(wn*(X-utrans*k*dt)).*cos(wn*(Z-vtrans*k*dt))*exp(-2*ndt*k*wn*wn)+utrans;
-    % % va =-cos(wn*(X-utrans*k*dt)).*sin(wn*(Y-vtrans*k*dt))*exp(-2*ndt*k*wn*wn)+vtrans;
-    % va = 0*X;
-    % wa =-cos(wn*(X-utrans*k*dt)).*sin(wn*(Z-vtrans*k*dt))*exp(-2*ndt*k*wn*wn)+vtrans;
-    % if k == 1 || k == 2;
-    %     U{kc} = ua;
-    %     W{kc} = wa;
-    % end;
-    % pa =0.25*( cos(wn*2*(X-utrans*k*dt))+cos(wn*2*(Y-vtrans*k*dt)) )*exp(-4*nu*k*dt*wn^2);
-    % ue = max(max(max(abs(U{kc} - ua))))
-    % ve = max(max(max(abs(V{kc} - va))))
-    % we = max(max(max(abs(W{kc} - wa))))
     disp([it_p,it_u,it_v,it_w,it_t])
     disp([res_p,res_u,res_v,res_w,res_t])
     
-    % if max([umax vmax wmax]) > 5;
-    %     error("Unstable");
-    % end;
+    if max(isnan(U{kc})) ~= 0;
+        error("Unstable");
+    end;
 
     %% Diagnostics
-    if mod(k,20) == 0; 
+    if true || mod(k,10) == 0; 
         figure(1)
-        contourf(squeeze(Xf(:,ny,:)), squeeze(Zf(:,ny,:)), squeeze(t3w(Jf,T{kc})(:,ny,:)));  
-        % plot(Jf{3}*z,squeeze(t3w(Jf,T{kc})(nx,ny,:)))
-        xlabel("x"); ylabel("y");
+        % xp = reshape(Xf(:,:,:),[],1); yp = reshape(Yf(:,:,:),[],1); zp = reshape(Zf(:,:,:),[],1);
+        % up = reshape(t3w(Jf,T{kc})(:,:,:),[],1);
+        % scatter3(xp,yp,zp,[],up); axis equal
+        Rf = squeeze(Rad(1,end:-1:1,:));
+        Pf = squeeze(Pol(1,end:-1:1,:));
+        Tf = squeeze(T{kc}(1,end:-1:1,:));
+        contourf(Pf,Rf,Tf)
+        % plot(Rf(1,:),Tf(1,:), '-k'); 
+        % hold on;
+        % plot(Rf(1,:),1./Rf(1,:)-1, '-r');
+        % hold off;
+        % contourf(squeeze(Xf(:,ny,:)), squeeze(Zf(:,ny,:)), squeeze(t3w(Jf,T{kc})(:,ny,:)));  
+        % xlabel("x"); ylabel("z");
         title(num2str([umax, vmax, wmax, tmax]))
-        % plot(Jf{1}*x,t3w(Jf,V{kc})(:,ny,nz))
-        % hold on
-        % plot(Jf{2}*y,t3w(Jf,U{kc})(nx,:,nz))
-        % hold off
-        % xlim([0 1]); ylim([-1 1])
-        % title(sprintf("vmax: %d, umin: %d", max(t3w(Jf,V{kc})(:,ny,nz)), min(t3w(Jf,U{kc})(nx,:,nz))))
         drawnow
     end;
 
