@@ -15,3 +15,9 @@ prj1/plotting_data
 prj1/figures
 prj1/data
 prj1/plotting.m
+
+# Project 2
+prj2/data
+prj2/figures
+prj2/*.txt
+prj2/*.py
