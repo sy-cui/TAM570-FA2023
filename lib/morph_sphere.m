@@ -1,4 +1,4 @@
-function [Xs,Ys,Zs] = morph_sphere(X,Y,Z,ri,ro);
+function [Xs,Ys,Zs,rad,pol,azi] = morph_sphere(X,Y,Z,ri,ro);
     % Morph domain into a sphere of inner radius ri
     % and outer radius ro centered at (0,0)
 
