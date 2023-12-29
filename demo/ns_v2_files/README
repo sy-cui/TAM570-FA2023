@@ -1,0 +1,234 @@
+=============================================================================
+
+Files for Navier-Stokes solutions in 2D using spectral elements.
+
+Version 2.
+
+=============================================================================
+
+Version 2 Notes 
+
+  o This case still solves the Kovasznay test problem.
+
+  o Principal difference here is the addition of 2-level multigrid for
+    the pressure Poisson solver.
+
+  o Also, timing has been added to several of the routines (which reveals
+    that most of the time is still spent in the pressure solve).
+
+  o Also, the "curlcurl.m" file is still missing - right now it uses
+    "curlcurl_0.m", which just returns 0.
+
+    You need to update curlcurl.m to get a dramatic error reduction.
+
+
+
+=============================================================================
+
+Version 1 Notes (from before):
+
+====================
+Current limitations:
+====================
+
+   i) No multigrid for pressure, yet.  This forthcoming addition
+      should greatly improve your runtime.
+
+  ii) Currently supports only inflow/outflow -- not closed domains.  
+      Will add the needed projection for nontrivial nullspace in the 
+      pressure solve in a future version.
+
+ iii) Only tensor-product box topologies (Nelx X Nely) at present.
+      This limitation results primarily from the way the gather-scatter
+      matrix, Q, is defined.   All other operators are topology agnostic.
+
+  iv) curl-curl term needs to be updated, by _you_.   This is a simple
+      application of the chain rule to the tensor-product arrays.  Look
+      for tensor3 and Rx in several of the files for template/guidance
+      on how to add this.
+
+      Q: How much does the addition of a proper curl-curl operator
+         reduce the error for the Kovasznay flow at Re=40?
+
+         (NOTE!  Historically, addition of the curl-curl term has
+         had a significant impact on the predicted Strouhal number
+         for flow past a _circular_ cylinder.)
+
+=============================================================================
+
+Design features:
+================
+
+   i) Data layout is Ul(Nx1,E,Ny1), for Nx1=Ny1=N+1, where N is the polynomial order
+    
+  ii) Residual arrays are passed into solvers in _unassembled_ form.
+
+ iii) Iterative solvers retain residuals as _unassembled_. 
+
+  iv) Preconditioners take unassembled inputs and generated _assembled_ outputs.
+      The (continuous) solutions are linear combinations of preconditioner outputs.
+
+
+=============================================================================
+
+FILES:
+======
+
+-----------------------------------------------------------------------------
+ns_v1.m -  main driver.
+
+  Modify this file to change polynomial order, dt, nsteps, 
+  Reynolds number, Peclet number, and diagnositics.
+
+-----------------------------------------------------------------------------
+set_sem_all.m - main setup for geometry, BC definition, etc.
+
+  Modify this file to change your geometry, Nelx, Nely, boundary types
+  (Dirichlet, Neumann, periodic).
+
+-----------------------------------------------------------------------------
+set_ic_bc.m - Set ICs and inhomogeneous Dirichlet BC values for U,V,T
+
+  Modify this file to change your prescribed ICs or boundary values.
+
+-----------------------------------------------------------------------------
+kovasznay.m - Set IC/BC (or any other output) to exact solution for Kovasznay flow
+
+  This script is called by set_ic_bc.m in current incarnation of code.
+
+  It's convenient (i.e., less error-prone) to use a script like this for 
+  other known flows (e.g., Taylor vortices), rather than cluttering up 
+  set_ic_bc.m with a lot of formulas.
+
+-----------------------------------------------------------------------------
+morph_semi.m -- morph geometry to semi-circle,
+morph_circ.m                      circle,
+morph_hill.m                      hill.
+
+   These routines have been tested in earlier Poisson-solve tests, 
+   but not yet in the NS context.
+
+-----------------------------------------------------------------------------
+curlcurl.m --  Needs to be updated, by _you_.   
+
+   The required modification is a simple application of the chain rule 
+   to the tensor-product arrays.  Look for tensor3 and Rx in several of 
+   the files for template/guidance on how to add this.
+
+-----------------------------------------------------------------------------
+axl.m - Apply local symmetric semi-positive-definite A matrix to each element.
+        Unassembled output.
+
+-----------------------------------------------------------------------------
+advectl.m       - local _dealiased_ advection operator:  w_L = C_L u_L
+set_advect_c.m  - map advecting field to Mth-order quadrature points, for
+                  data re-use when applying dealiased advection operator.
+
+-----------------------------------------------------------------------------
+weak_div.m - computes operator associated with \int grad v . U dV,
+             which is used in the RHS of the splitting method.
+             
+             This term is in the RHS of Eq. (22) in split_slides.pdf _after_
+             integration by parts.
+-----------------------------------------------------------------------------
+grad.m - computes the standard gradient of an input H1 scalar field
+         This routine is required for the pressure correction in the 
+         splitting formulation.
+
+-----------------------------------------------------------------------------
+set_unxy.m - set the _area_weighted unit normals on faces where Dirichlet
+             velocity conditions are specified.  The associated outputs
+
+             [unxa_v,unya_v] 
+
+             are stored _volumetrically_ ,which it topologically _incorrect_.
+
+             Consequently, this routine should be used with some caution.
+             This volumetric approach was used for expedience in order to
+             obviate the need for surface-based arrays that are used in a
+             more general code.
+
+             The routine will likely work for 99% of our cases, modulo
+             some corner cases.The routine will likely work for 99% of our 
+             cases, modulo some corner cases.
+
+-----------------------------------------------------------------------------
+qqt.m      U_L = QQ^T U'_L
+
+           Apply the (unweighted) assembly operator, QQ^T, to an input field.
+
+-----------------------------------------------------------------------------
+qqt_op.m   Same as QQ^T but for other commutative/associated operators: 
+
+           +,*,min,max
+
+      This script is useful to ensure proper continuity for mask arrays, 
+      Mu,Mv,Mp,Mt, which are used to enforce homogeneous Dirichlet conditions.
+
+-----------------------------------------------------------------------------
+pcg_lambda.m -- use PCG to solve the Helmholtz problem: (h0*B + h1*A) Ul = Fl.
+
+             Uses diagonal (Jacobi) preconditioning.
+
+             Input,  Fl, is _unassembled_.
+             Output, Ul, is continuous.
+
+             Also output is an estimate of the max eigenvalue of D^{-1} A,
+             lambda_max.
+
+-----------------------------------------------------------------------------
+project0.m   These routines are used to accelerate the pressure solve.
+project1.m
+
+             The idea is to generate the best approximation to p^n in
+             the space of prior solutions [p^{n-1} p^{n-2} ... p^{n-l}]
+             for l < L ~ 10-20.  
+
+             NS solve times are typically reduced by ~2X.
+
+             Fischer, P.F., "Projection techniques for iterative 
+             solution of Ax=b with successive right-hand sides." 
+             Comp. Meth. in Appl. Mech 163 (1998)
+
+             https://www.mcs.anl.gov/~fischer/pubhtml/project.pdf
+
+-----------------------------------------------------------------------------
+a_norm.m - returns A-norm of the input.
+
+-----------------------------------------------------------------------------
+cheby4.m - Optimized 4th-kind Chebyshev smoothing based on recent papers
+           by James Lottes and Malachi Phillips
+
+           Requires estimated upper-bound on the eigenvalue of D^{-1} A, 
+           which comes from pcg_lambda().
+
+           This routine will be used in the p-multigrid scheme for the pressure.
+
+-----------------------------------------------------------------------------
+diag_sem.m - Used to generate diag(A)
+diag_a.m
+
+-----------------------------------------------------------------------------
+se_mesh.m     - mesh plot of spectral-element scalar array values
+se_quiver.m   - quiver plot of spectral-element vector array values
+se_disp.m     - display contents of SE array in a semi-organized fashion.
+
+
+-----------------------------------------------------------------------------
+Standard nodal-Legendre routines:
+
+hdr.m
+deriv_mat.m
+interp_mat.m
+gen_eig_ortho_mat.m
+semhat.m
+tensor2.m
+tensor3.m
+zwgl.m
+zwgll.m
+zwuni.m
+
+-----------------------------------------------------------------------------
+And, there are others of less consequence to your own code development.
+
+-----------------------------------------------------------------------------
